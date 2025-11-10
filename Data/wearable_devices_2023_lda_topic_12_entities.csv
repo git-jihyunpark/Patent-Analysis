@@ -1,0 +1,13 @@
+Label,Text
+applications,watch
+audio system,headphone
+data processing,"bytestream, datastreaming, datahandling, beamforming, columnar, coding, dataflow, computation, subsampling, informationhandling, dtree, cachelines, kmeans, datawriting, classifier, defragmenting, hashing, packetization, fingerprinting, cloudcomputing, dataparallel, datatransfer, recognition, analytics, demultiplexing"
+display,"microdisplays, lcd, microdisplay"
+external devices,smartwatches
+materials,"iridium, hexylammonium, graphite, glassceramic, aluminum, vanadium, silicate, nickel, resin, cellulose, garnet, nanosheets, graphene, phosphide, nanofibers, polyester, ceramic, aramid, polyethylene, silver, perovskites, silicon"
+memory,"multimemory, mem, mempool, gesturebased, memory, intermemory, inmemory"
+network system,ethernet
+optical technology,lightscattering
+sensors,"nanosensors, photosensors, biosensors, photosensor"
+user interface,"touchscreen, satellite, usermenu, toolbar, gui, microvisor, uxui, interface, iframe"
+wireless communication,"wlan, bluetooth, vxlan, wifi"
