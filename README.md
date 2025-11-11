@@ -1,4 +1,4 @@
-# [Python] Patent-Analysis
+# [Python] Patent Analysis
 
 🗓️ **Date**: 2024.11.21 ~ 2025.07.09
 
