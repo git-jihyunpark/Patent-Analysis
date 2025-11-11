@@ -274,7 +274,7 @@ def lda_plot(perplexity_scores, coherence_scores):
 ```
 <br/><br/>
 
-- The number of LDA topics was determined as 8, 12, and 16 based on the following criteria:
+- The number of LDA topics was determined as `8`, `12`, and `16` based on the following criteria:
   - The number of components in wearable devices
   - The complexity of the model
   - The trade-off relationship between perplexity and coherence
@@ -282,7 +282,7 @@ def lda_plot(perplexity_scores, coherence_scores):
 <br/><br/>
 
 
-- Extracted top keywords for each number of topics.
+- Extracted top keywords for each number of topics.(Conducted the same process for topic numbers 12 and 16.)
 ```python
 # 토픽 수
 topics_8 = 8
@@ -306,7 +306,7 @@ for topic_num, words in topics.items():
 <br/><br/>
 
 
-- Reviewed the keywords and defined the `dimensions` of the morphological matrix based on expert knowledge.
+- Reviewed the keywords and defined the `dimensions` of the morphological matrix based on expert knowledge.(Conducted the same process for topic numbers 12 and 16.)
 ```python
 # 각 토픽별 dimension 정의(전문가 지식 기반)
 labels_8 = {
@@ -332,9 +332,6 @@ df_2023_topic_8 = df_2023_topic_8[['label', 'topic', 'keywords']]
 # 결과 엑셀 파일로 저장
 output_file = 'Data/wearable_devices_2023_lda_topic_8_with_labels.csv'
 df_2023_topic_8.to_csv(output_file, index=False)
-
-# 결과 확인
-df_2023_topic_8
 ```
 <br/><br/>
 
@@ -343,31 +340,270 @@ df_2023_topic_8
 
 ### 4. NuNER
 
+- NuNER, a model pre-trained on LLM-annotated data across various domains to overcome the limitations of traditional NER, is well-suited for extracting diverse and creative values in morphology analysis (Bogdanov et al., 2024).<br/>
 ```python
+from gliner import GLiNER
+model = GLiNER.from_pretrained("numind/NuZero_token")
+```
+<br/><br/>
 
+
+- Extracted entities using NuNER for each defined dimension.(Conducted the same process for topic numbers 12 and 16.)<br/>
+```python
+# 추출 결과를 저장할 리스트
+results_2023_topic_8_entity = []
+
+# 각 텍스트에 대해 엔티티 추출
+for tokens in unique_df['tokens']:
+    if isinstance(tokens, list):
+        text = ' '.join(tokens)
+    else:
+        text = str(tokens)
+
+    entities = model.predict_entities(text, label_2023_topic_8)
+
+    for entity in entities:
+        #print(entity["text"], "=>", entity["label"])
+        results_2023_topic_8_entity.append({
+            'Text': entity['text'],
+            'Label': entity['label']
+        })
+
+# 결과 리스트를 데이터 프레임으로 변환
+df_2023_topic_8_entity = pd.DataFrame(results_2023_topic_8_entity)
+
+# Label별로 Text를 합치기
+df_2023_topic_8_grouped = df_2023_topic_8_entity.groupby('Label')['Text'].apply(lambda x: ', '.join(x)).reset_index()
+
+# 결과 데이터 프레임 출력
+df_2023_topic_8_grouped.head()
 ```
 <br/><br/>
 
 
 
-```python
+### 5. Morphological Analysis
+- Compared the extracted dimensions for each number of topics to select those that could serve as components of wearable devices. <br/>
 
-```
+*Table. Result of Topic 8 LDA: Keywords and Dimension Definitions* <br/>
+  
+| **Topic** | **Keywords** | **Corresponding Dimension** |
+|------------|--------------|------------------------------|
+| **Topic 0** | data, user, device, content, image, method, based, object, information, second, plurality, model, associated, medium, set, application, video, vehicle, item, computing | Data Processing |
+| **Topic 1** | ue, wireless, resource, signal, transmission, channel, communication, information, second, beam, configuration, station, device, uplink, radio, power, base, control, cell, frequency | Wireless Communication |
+| **Topic 2** | display, device, object, image, camera, user, screen, electronic, virtual, second, position, input, gesture, haptic, wearable, processor, sensor, eye, hand, area | User Interface |
+| **Topic 3** | block, current, prediction, motion, transform, image, decoding, picture, sample, basis, deriving, vector, residual, mode, information, intra, bitstream, based, coefficient, pressure | Audio System |
+| **Topic 4** | audio, sound, signal, microphone, sequence, acoustic, speaker, speech, clip, ear, guest, hearing, transcription, bit, firsttype, quantum, binaural, frame, sporting, music | Optical Technology |
+| **Topic 5** | surface, housing, portion, second, lens, assembly, material, element, device, structure, display, configured, layer, member, flexible, includes, disposed, electronic, conductive, component | Materials |
+| **Topic 6** | device, network, communication, data, user, access, request, service, information, second, transaction, method, associated, message, application, wireless, identifier, key, server, packet | Network System |
+| **Topic 7** | signal, light, circuit, pixel, display, second, voltage, layer, electrode, configured, line, power, plurality, includes, device, sensor, driving, touch, sensing, region | Sensors |
+
+<br/><br/>
+
+
+*Table. Result of Topic 12 LDA: Keywords and Dimension Definitions* <br/>
+  
+| **Topic** | **Keywords** | **Corresponding Dimension** |
+|------------|--------------|------------------------------|
+| **Topic 0** | user, data, device, image, content, method, based, object, second, information, model, associated, video, plurality, medium, application, item, set, input, event | Data Processing |
+| **Topic 1** | wireless, ue, resource, communication, transmission, signal, information, channel, device, second, station, configuration, method, radio, beam, base, control, uplink, network, power | Wireless Communication |
+| **Topic 2** | animation, trip, audience, nft, flight, error, fov, telematics, dispensing, dispenser, dialog, fuel, exercise, scell, defect, welding, hazard, signature, meter, particle | Applications |
+| **Topic 3** | block, current, prediction, transform, decoding, picture, sample, basis, motion, deriving, vector, residual, pressure, intra, air, bitstream, mode, information, heat, flag | Sensors |
+| **Topic 4** | image, audio, signal, device, object, user, virtual, sensor, wearable, sound, position, display, camera, eye, environment, second, configured, movement, head, reality | User Interface |
+| **Topic 5** | insurance, drone, headworn, transportation, vehicle, parking, sentiment, av, trp, observed, pickup, playlist, mb, door, compartment, charging, shadow, selfdriving, chassis, pll | External Devices |
+| **Topic 6** | device, data, network, user, memory, access, request, communication, service, information, second, method, associated, application, key, computing, server, transaction, storage, based | Network System |
+| **Topic 7** | circuit, signal, pixel, voltage, second, display, power, electrode, driving, line, transistor, configured, layer, panel, output, connected, plurality, includes, touch, control | Display |
+| **Topic 8** | utterance, speech, audio, conference, topic, voice, earpiece, spoken, chatbot, assistant, speaker, transcription, transcript, satellite, conferencing, disease, portal, post, backup, container | Audio System |
+| **Topic 9** | light, display, surface, second, layer, portion, housing, optical, lens, substrate, disposed, element, area, region, includes, device, structure, configured, material, sensor | Optical Technology |
+| **Topic 10** | compound, clip, ligand, atm, formula, episode, shooting, stroke, carbon, rlm, polar, strand, binding, printer, fixing, mo, mixture, lowpower, neighbor, ecc | Materials |
+| **Topic 11** | wtru, memory, bwp, cell, bit, repeater, reservoir, water, tensor, fan, read, pump, duty, codeword, filling, uci, branch, gear, quantum, po | Memory |
+
+<br/><br/>
+
+
+*Table. Result of Topic 16 LDA: Keywords and Dimension Definitions* <br/>
+
+| **Topic** | **Keywords** | **Corresponding Dimension** |
+|------------|--------------|------------------------------|
+| **Topic 0** | user, data, image, device, content, object, method, based, second, display, model, information, video, input, plurality, medium, virtual, interface, associated, item | User Interface |
+| **Topic 1** | resource, sidelink, signal, symbol, slot, sr, information, second, reference, channel, method, related, time, sl, physical, timefrequency, window, wireless, set, rach | Wireless Signal Setup |
+| **Topic 2** | voltage, memory, cell, word, read, envelope, sensory, inductor, barcode, converter, diffusion, regulator, venue, resistor, bit, line, error, bias, amplifier, page | Circuit |
+| **Topic 3** | patient, treatment, signal, sensor, medical, surgical, temperature, rate, blood, data, monitoring, robot, measurement, pressure, method, heart, based, plan, skin, therapy | Medical Devices |
+| **Topic 4** | audio, sound, acoustic, signal, haptic, speaker, microphone, hand, ear, user, wave, computergenerated, tissue, feedback, headworn, transducer, food, head, modality, reflective | Audio System |
+| **Topic 5** | power, signal, antenna, circuit, frequency, configured, rf, second, vibration, charging, battery, wireless, energy, device, cable, band, accessory, coil, switch, control | Power |
+| **Topic 6** | device, network, data, user, communication, service, access, associated, request, information, application, method, transaction, computing, second, message, mobile, key, based, identifier | Network System |
+| **Topic 7** | pixel, display, circuit, second, signal, voltage, light, line, driving, electrode, element, layer, transistor, panel, lens, plurality, region, connected, driver, gate | Display |
+| **Topic 8** | data, memory, storage, device, file, card, request, host, second, controller, address, operation, plurality, information, command, record, user, server, service, table | Memory |
+| **Topic 9** | block, current, prediction, decoding, transform, sample, picture, bit, basis, deriving, residual, vector, flag, intra, bitstream, information, mode, coefficient, motion, encoding | Data Processing |
+| **Topic 10** | emissive, cleaning, retention, parking, deposit, documentation, oled, spot, print, fund, bond, clinical, velocity, blind, rider, resonance, damaged, household, compilation, grip | Display Manufacturing |
+| **Topic 11** | die, test, clock, ray, clip, bank, primitive, guest, comment, wheel, footwear, semiconductor, register, interconnect, intersection, comparator, tunnel, rating, dy, belt | Semiconductor |
+| **Topic 12** | vehicle, emergency, financial, safety, handheld, biometric, person, telephone, marker, chatbot, chain, post, building, assistance, occupant, fault, ultrasonic, caller, lidar, fragment | Emergency |
+| **Topic 13** | ue, wireless, communication, channel, transmission, device, information, signal, station, second, resource, beam, configuration, network, control, base, cell, method, uplink, aspect | Wireless Communication |
+| **Topic 14** | surface, display, second, housing, portion, light, layer, device, optical, sensor, substrate, structure, configured, disposed, material, electronic, includes, assembly, area, touch | Sensors |
+| **Topic 15** | vehicle, autonomous, browser, operator, collision, web, road, listing, uci, trip, reservation, kiosk, fitness, exit, dispenser, desktop, cache, repair, fleet, launch | External Devices |
+
 <br/><br/>
 
 
 
+- Selected values from NuNER’s entity lists corresponding to the chosen dimensions that could represent potential components of wearable devices. <br/>
 
+*Table. Results of NuNER Entity extraction for Topic 8* <br/>
+
+| **Topic** | **Dimension** | **Entities** |
+|------------|----------------|---------------|
+| **Topic 0** | Data Processing | bytestream, datastreaming, datahandling, pipeline, beamforming, columnar, coding, dataflow, lineage, computation, subsampling, informationhandling, dtree, kmeans, datawriting, classifier, defragmenting, packetization, fingerprinting, cloudcomputing, dataparallel, datatransfer, recognition, analytics, digitally, demultiplexing |
+| **Topic 1** | Wireless Communication | wlan, bluetooth, vxlan, wifi |
+| **Topic 2** | User Interface | ui, touchscreen, satellite, usermenu, teleprompter, toolbar, gui, microvisor, uxui, lcd, microdisplay, touchscreenbased, iframe, touchpad, trackpad, headsupdisplay, hud, forcetouch, dualscreen |
+| **Topic 3** | Audio System | earbuds, earbud, earphone, microphone, speakerphone, headphone |
+| **Topic 4** | Optical Technology | nearinfrared, waveguide, fiberoptic, lightscattering, electrooptical |
+| **Topic 5** | Materials | iridium, hexylammonium, graphite, glassceramic, polyurethane, copper, aluminum, vanadium, silicate, nickel, resin, cellulose, alumina, garnet, gallium, barium, nanosheets, graphene, phosphide, nanofibers, polyester, carbon, titanate, ceramic, fiber, aramid, polyethylene, glass, silicone, silver, perovskites, silicon |
+| **Topic 6** | Network System | ethernet |
+| **Topic 7** | Sensors | nanosensors, photosensors, biosensors, photosensor |
+
+<br/><br/>
+
+
+*Table. Results of NuNER Entity extraction for Topic 12* <br/>
+
+| **Topic** | **Dimension** | **Entities** |
+|------------|----------------|---------------|
+| **Topic 0** | Data Processing | bytestream, datastreaming, datahandling, beamforming, columnar, coding, dataflow, computation, subsampling, informationhandling, dtree, cachelines, kmeans, datawriting, classifier, defragmenting, hashing, packetization, fingerprinting, cloudcomputing, dataparallel, datatransfer, recognition, analytics, demultiplexing |
+| **Topic 1** | Wireless Communication | wlan, bluetooth, vxlan, wifi |
+| **Topic 2** | Applications | watch |
+| **Topic 3** | Sensors | nanosensors, photosensors, biosensors, photosensor |
+| **Topic 4** | User Interface | touchscreen, satellite, usermenu, toolbar, gui, microvisor, uxui, interface, iframe |
+| **Topic 5** | External Devices | smartwatches |
+| **Topic 6** | Network System | ethernet |
+| **Topic 7** | Display | microdisplays, lcd, microdisplay |
+| **Topic 8** | Audio System | headphone |
+| **Topic 9** | Optical Technology | lightscattering |
+| **Topic 10** | Materials | iridium, hexylammonium, graphite, glassceramic, aluminum, vanadium, silicate, nickel, resin, cellulose, garnet, nanosheets, graphene, phosphide, nanofibers, polyester, ceramic, aramid, polyethylene, silver, perovskites, silicon |
+| **Topic 11** | Memory | multimemory, mem, mempool, gesturebased, memory, intermemory, inmemory |
+
+<br/><br/>
+
+
+*Table. Results of NuNER Entity extraction for Topic 16* <br/>
+
+| **Topic** | **Dimension** | **Entities** |
+|------------|----------------|---------------|
+| **Topic 0** | User Interface | touchscreen, usermenu, toolbar, headupdisplays, gui, microvisor, displaypanel, iframe |
+| **Topic 1** | Wireless Signal Setup | - |
+| **Topic 2** | Circuit | udi, circuit, capacitor, subcircuits, circuitry |
+| **Topic 3** | Medical Devices | inktoner, condom, cigarette, earbuds, oximeter, tidal, inverter, syringe, piston, catheter, endoscope, biologics, earbud, microneedles, microphone, electrocardiograph, orthotic, orthotics, airbag, inhaler, prosthetics, wristband, defibrillator, inkjet, binoculars, smartwatches, cardioverter, microendoscopes, flowmeters, microneedle, disability, dispenser, conditioner, lotion, airbags, eyeware, cellphone, cannula, spectacle, toothbrush, supraaural, mattress |
+| **Topic 4** | Audio System | headphone |
+| **Topic 5** | Power | powersupply |
+| **Topic 6** | Network System | - |
+| **Topic 7** | Display | lcd |
+| **Topic 8** | Memory | multimemory, mem, mempool, gesturebased, memory, intermemory, inmemory |
+| **Topic 9** | Data Processing | bytestream, datastreaming, datahandling, beamforming, columnar, coding, dataflow, lineage, computation, subsampling, informationhandling, kmeans, datawriting, classifier, defragmenting, packetization, fingerprinting, cloudcomputing, dataparallel, datatransfer, analytics, preprocessing, demultiplexing |
+| **Topic 10** | Display Manufacturing | - |
+| **Topic 11** | Semiconductor | iridium, hexylammonium, graphite, subtransistor, silyl, qci, resistor, supercapacitors, postsilicon, thinfilmtransistor, tungsten, phototransistor, crosscarrier, anode, silicate, acrylamidomethylpropanesulfonic, microsemiconductor, alumina, ammonium, garnet, mxene, thioxanthene, quartz, chromium, manganese, arsenide, ssd, indium, onchip, aryloxy, triphenylene, boron, gallium, barium, nanosheets, graphene, ammonia, germanium, perovskite, molybdenum, phosphide, titanium, mtc, carbene, cycloalkenyl, aramid, polyethylene, carbazolylcarbazole, polysilicon, neodymium, perovskites |
+| **Topic 12** | Emergency | - |
+| **Topic 13** | Wireless Communication | wlan, bluetooth, wifi |
+| **Topic 14** | Sensors | nanosensors, photosensors, silicon |
+| **Topic 15** | External Devices | - |
+  
+<br/><br/>
+
+
+- Organized the selected dimensions and values into rows and columns to construct a morphological matrix.<br/>
+  - The morphological matrix consists of a total of 16 dimensions. In particular, the dimensions `G (Materials)`, `H (Medical Devices)`, and `J (Semiconductor)` yielded more than 20 combinable values, demonstrating that a data-driven approach can effectively extend and complement expert judgment in constructing the morphological matrix.
+  - Conversely, the dimensions `A (Applications)`, `E (External Devices)`, `K (Network System)`, and `M (Power)` showed a relatively limited number of extracted values. This limitation is interpreted as being caused by the issue of data sparsity, where relevant keywords are either absent or infrequently occurring in the collected dataset, similar to the previous case study.
+- Combined values within the morphological matrix to discover new product ideas.<br/>
+
+*Table. Morphological matrix for Wearable Devices* <br/>
+
+| **(A) Applications** | **(B) Audio System** | **(C) Circuit** | **(D) Display** | **(E) External Devices** |
+|------------------------|----------------------|------------------|------------------|----------------------------|
+| A₁ = watch | B₁ = earbud | C₁ = capacitor | D₁ = LCD (Liquid Crystal Display) | E₁ = smart watches |
+|  | B₂ = earphone | C₂ = circuitry | D₂ = micro-display |  |
+|  | B₃ = microphone | C₃ = subcircuits |  |  |
+|  | B₄ = speakerphone | C₄ = UDI (Unique Device Identifier) |  |  |
+|  | B₅ = headphone |  |  |  |
+
+
+| **(F) Data Processing** | **(G) Materials** | **(H) Medical Devices** | **(I) Memory** | **(J) Semiconductor** |
+|--------------------------|-------------------|--------------------------|----------------|------------------------|
+| F₁ = analytics | G₁ = alumina | H₁ = airbag | I₁ = gesture-based | J₁ = acrylamido methylpropane sulfonic |
+| F₂ = beamforming | G₂ = aluminum | H₂ = binoculars | I₂ = In Memory | J₂ = ammonia |
+| F₃ = byte-stream | G₃ = aramid | H₃ = cannula | I₃ = inter memory | J₃ = ammonium |
+| F₄ = cachelines | G₄ = barium | H₄ = cardioverter | I₄ = mem pool (Memory Pool) | J₄ = anode |
+| F₅ = classifier | G₅ = carbon | H₅ = catheter | I₅ = multi-memory | J₅ = aramid |
+| F₆ = cloud computing | G₆ = cellulose | H₆ = defibrillator |  | J₆ = arsenide |
+| F₇ = columnar | G₇ = ceramic | H₇ = dispenser |  | J₇ = aryloxy |
+| F₈ = dataflow | G₈ = copper | H₈ = electro-cardiograph |  | J₈ = barium |
+| F₉ = data handling | G₉ = fiber | H₉ = endoscope |  | J₉ = boron |
+| F₁₀ = data parallel | G₁₀ = gallium | H₁₀ = eye-ware |  | J₁₀ = carbazolyl carbazole |
+| F₁₁ = data streaming | G₁₁ = garnet | H₁₁ = flowmeters |  | J₁₁ = carbene |
+| F₁₂ = data transfer | G₁₂ = glass | H₁₂ = inhaler |  | J₁₂ = chromium |
+| F₁₃ = data writing | G₁₃ = glass ceramic | H₁₃ = inverter |  | J₁₃ = cycloalkenyl |
+| F₁₄ = defragmenting | G₁₄ = graphene | H₁₄ = mattress |  | J₁₄ = gallium |
+| F₁₅ = demultiplexing | G₁₅ = graphite | H₁₅ = micro-endoscopes |  | J₁₅ = garnet |
+| F₁₆ = finger printing | G₁₆ = hexylammonium | H₁₆ = micro-needle |  | J₁₆ = germanium |
+| F₁₇ = hashing | G₁₇ = iridium | H₁₇ = orthotic |  | J₁₇ = graphene |
+| F₁₈ = information handling | G₁₈ = nano-fibers | H₁₈ = oximeter |  | J₁₈ = graphite |
+| F₁₉ = lineage | G₁₉ = nano-sheets | H₁₉ = prosthetics |  | J₁₉ = indium |
+| F₂₀ = packetization | G₂₀ = nickel | H₂₀ = spectacle |  | J₂₀ = iridium |
+| F₂₁ = recognition | G₂₁ = perovskites | H₂₁ = supra aural |  | J₂₁ = manganese |
+| F₂₂ = subsampling | G₂₂ = phosphide | H₂₂ = syringe |  | J₂₂ = micro-semiconductor |
+|  | G₂₃ = polyester | H₂₃ = tooth brush |  | J₂₃ = molybdenum |
+|  | G₂₄ = polyethylene | H₂₄ = wristband |  | J₂₄ = MTC (Metal Top Contact) |
+|  | G₂₅ = polyurethane |  |  | J₂₅ = mxene |
+|  | G₂₆ = resin |  |  | J₂₆ = neodymium |
+|  | G₂₇ = silicate |  |  | J₂₇ = on-chip |
+|  | G₂₈ = silicon |  |  | J₂₈ = perovskite |
+|  | G₂₉ = silicone |  |  | J₂₉ = phosphide |
+|  | G₃₀ = silver |  |  | J₃₀ = photo-transistor |
+|  | G₃₁ = titanate |  |  | J₃₁ = polyethylene |
+|  | G₃₂ = vanadium |  |  | J₃₂ = polysilicon |
+|  |  |  |  | J₃₃ = postsilicon |
+|  |  |  |  | J₃₄ = quartz |
+|  |  |  |  | J₃₅ = resistor |
+|  |  |  |  | J₃₆ = silicate |
+|  |  |  |  | J₃₇ = silyl |
+|  |  |  |  | J₃₈ = SSD (Solid State Drive) |
+|  |  |  |  | J₃₉ = sub transistor |
+|  |  |  |  | J₄₀ = super capacitors |
+|  |  |  |  | J₄₁ = thin film transistor |
+|  |  |  |  | J₄₂ = thioxanthene |
+|  |  |  |  | J₄₃ = titanium |
+|  |  |  |  | J₄₄ = triphenylene |
+|  |  |  |  | J₄₅ = tungsten |
+
+| **(K) Network System** | **(L) Optical Technology** | **(M) Power** | **(N) Sensors** | **(O) UI (User Interface)** | **(P) Wireless Communication** |
+|--------------------------|-----------------------------|----------------|-----------------|------------------------------|--------------------------------|
+| K₁ = ethernet | L₁ = electro-optical | M₁ = power supply | N₁ = bio-sensors | O₁ = display panel | P₁ = bluetooth |
+|  | L₂ = fiber-optic |  | N₂ = nano-sensors | O₂ = dual screen | P₂ = VXLAN (Virtual eXtensible LAN) (Network System) |
+|  | L₃ = light-scattering |  | N₃ = photo-sensor | O₃ = force touch | P₃ = Wi-Fi |
+|  | L₄ = near infrared |  |  | O₄ = GUI (Graphical User Interface) | P₄ = WLAN (Wireless Local Area Network) |
+|  | L₅ = waveguide |  |  | O₅ = HUD (Heads-up Display) |  |
+|  |  |  |  | O₆ = micro-visor |  |
+|  |  |  |  | O₇ = teleprompter |  |
+|  |  |  |  | O₈ = toolbar |  |
+|  |  |  |  | O₉ = touch-pad |  |
+|  |  |  |  | O₁₀ = touch-screen |  |
+|  |  |  |  | O₁₁ = trackpad |  |
+|  |  |  |  | O₁₂ = user menu |  |
+
+ 
+---
+
+✅ **References**
+- Bogdanov, S., Constantin, A., Bernard, T., Crabbé, B., & Bernard, E. P. (2024, November). Nuner: Entity recognition encoder pre-training via llm-annotated data. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing (pp. 11829-11841).
+<br/><br/>
 
 ---
 
 
 💖 **Lesson & Learn**
-1. Improvement of data collection and NLP 
+1. Improvement of Data Collection and NLP Skills 
    > USPTO patent data <br/>
    > LDA, NuNER
-2. Discovery of new product ideas  
-   > Discovery of new product ideas based on morphological analysis
+2. Discovery of New Product Ideas  
+   > Discovery of new product ideas based on morphological analysis <br/>
+   > Performed morphology analysis based on data to complement the limitations of expert knowledge-based approaches.
 
 
 
